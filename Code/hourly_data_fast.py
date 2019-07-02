@@ -143,18 +143,19 @@ def date_od_arr_out(s_data, bij, num_clusture):
 
     return od_arr
 
-fout = open("../Data/all_data_out.bin" , "wb")
-fin = open("../Data/all_data_in.bin" , "wb")
+fout = open("../usefulData/all_data_out.bin" , "wb")
+fin = open("../usefulData/all_data_in.bin" , "wb")
 
 count = False
+year_data_in = []
+year_data_out = []
 for month in range(1,13):
     st = time.time()
     print(month)
     print("Loading Data")
     data = get_months_data(month = month)
     print("Processing", time.time() - st)
-    months_data_in = []
-    months_data_out = []
+
     for date in range(1, 32):
         s_data = data[data[:, c_date] == date].copy()
         if(s_data.shape[0] == 0):
@@ -163,20 +164,56 @@ for month in range(1,13):
         season = get_season(timest)
         day = get_day(timest)
         holiday = get_day(timest)
-        if count:
-            months_data_out.append(date_od_arr_out(s_data=s_data, bij=bij, num_clusture=num_clusture ))
+        for l in date_od_arr_out(s_data=s_data, bij=bij, num_clusture=num_clusture ):
+            if count:
+                year_data_out.append(l)
 
-        months_data_in.append(
-            date_od_arr_in(s_data=s_data, bij=bij, num_clusture=num_clusture,
-                            season=season, day=day, holiday=holiday))
-        count = True
+            count = True
 
-    pickle.dump( months_data_out, fout)
-    if month == 12:
-        months_data_in.pop()
-
-    pickle.dump(months_data_in, fin)
+        for l2 in date_od_arr_in(s_data=s_data, bij=bij, num_clusture=num_clusture,
+                            season=season, day=day, holiday=holiday):
+            year_data_in.append(l2)
     print(time.time() - st)
+
+pickle.dump( year_data_out, fout)
+year_data_in.pop()
+pickle.dump(year_data_in, fin)
+
 
 fout.close()
 fin.close()
+
+
+fout = open("../usefulData/all_data_out.bin" , "rb")
+fin = open("../usefulData/all_data_in.bin" , "rb")
+
+fout7 = open("../usefulData/all_data_out7.bin" , "wb")
+fin7 = open("../usefulData/all_data_in7.bin" , "wb")
+
+
+data_in = pickle.load(fin)
+
+data7_in = []
+count = 1
+for i in range(365):
+    for k in range(7,20):
+        data7_in.append(data_in[24*i + k - count])
+        count = 0
+
+data7_inarr = np.array(data7_in)
+print(data7_inarr.shape)
+
+pickle.dump(data7_in, fin7)
+
+data_out = pickle.load(fout)
+data7_out = []
+count = 1
+for i in range(365):
+    for k in range(7,20):
+        data7_out.append(data_out[24*i + k - count])
+        count = 0
+
+data7_outarr = np.array(data7_out)
+print(data7_outarr.shape)
+
+pickle.dump(data7_out, fout7)
