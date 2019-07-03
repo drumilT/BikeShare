@@ -8,8 +8,8 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 
 def get_data():
-    fout = open("../usefulData/all_data_out.bin" , "rb")
-    fin = open("../usefulData/all_data_in.bin" , "rb")
+    fout = open("../usefulData/all_data_out7.bin" , "rb")
+    fin = open("../usefulData/all_data_in7.bin" , "rb")
     data_in = pickle.load(fin)
     data_out = pickle.load(fout)
     X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.01, random_state=42)
@@ -35,17 +35,17 @@ test_labels = test_labels.reshape((test_labels.shape[0], 225))
 #train_images, test_images = train_images / 255.0, test_images / 255.0
 
 model = models.Sequential()
-model.add(layers.Conv2D(32, (2, 2), activation='relu', input_shape=(19, 19, 1)))
+model.add(layers.Conv2D(10, (2, 2), activation='relu', input_shape=(19, 19, 1)))
 #model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(64, (2, 2), activation='relu'))
+model.add(layers.Conv2D(30, (3, 3), activation='relu'))
 #model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(64, (2, 2), activation='relu'))
+model.add(layers.Conv2D(30, (3, 3), activation='relu'))
 
 #model.summary()
 
 model.add(layers.Flatten())
 model.add(layers.Dense(300, activation='relu'))
-model.add(layers.Dense(225, activation='softmax'))
+model.add(layers.Dense(225, activation='relu'))
 
 model.summary()
 
@@ -55,16 +55,18 @@ model.compile(optimizer='adam',
 
 #x = model.predict(test_images[0].reshape((1,19,19,1)))
 #print(x.shape)
-model.fit(train_images, train_labels, epochs=30)
+model.fit(train_images, train_labels, epochs=10)
 
 test_loss, test_acc = model.evaluate(test_images, test_labels)
 print(test_acc)
 
 x = model.predict(test_images[0].reshape((1,19,19,1)))
 x = x.reshape((15,15))
-print(x)
-plt.colorbar()
+print(*x)
+
 plt.imshow(x)
+plt.colorbar()
 plt.show()
 plt.imshow(test_images[0].reshape((19,19)))
+plt.colorbar()
 plt.show()
