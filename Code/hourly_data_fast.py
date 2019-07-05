@@ -8,10 +8,11 @@ import pickle
 
 us_holidays = holidays.US()
 
+scale = 1
 
 def get_holiday(now):
     if now in us_holidays:
-        return 1
+        return 1*scale
     else:
         return 0
 
@@ -27,7 +28,7 @@ def get_season(now):
     if isinstance(now, datetime):
         now = now.dtf()
     now = now.replace(year=Y)
-    return next(season_num for season_num, season, (start, end) in seasons
+    return next( scale*season_num for season_num, season, (start, end) in seasons
                 if start <= now <= end)
 
 
@@ -36,51 +37,51 @@ def get_day(now):
 
 
 def make_st_num_dict():
-    bij = {31100: 4, 31101: 9, 31102: 5, 31103: 5, 31104: 12, 31105: 5,
-          31106: 12,
-          31107: 5, 31108: 13, 31201: 2, 31202: 9, 31203: 1, 31204: 4,
-          31205: 4,
-          31400: 5, 31401: 5, 31502: 10, 31600: 7, 31602: 5, 31305: 0,
-          31206: 4,
-          31500: 10, 31111: 9, 31207: 9, 31110: 12, 31109: 9, 31200: 2,
-          31603: 11,
-          31212: 2, 31213: 2, 31604: 7, 31214: 2, 31503: 11, 31302: 0,
-          31402: 14,
-          31216: 1, 31217: 6, 31215: 8, 31220: 4, 31218: 13, 31219: 6,
-          31211: 8,
-          31221: 2, 31620: 7, 31222: 1, 31223: 7, 31112: 12, 31224: 2,
-          31225: 8,
-          31609: 13, 31226: 0, 31227: 1, 31228: 7, 31505: 11, 31229: 2,
+    bij = {31100: 3, 31101: 8, 31102: 4, 31103: 4, 31104: 10, 31105: 4,
+          31106: 10,
+          31107: 4, 31108: 11, 31201: 2, 31202: 8, 31203: 1, 31204: 3,
+          31205: 3,
+          31400: 4, 31401: 4, 31502: -1, 31600: 6, 31602: 4, 31305: 0,
+          31206: 3,
+          31500: -1, 31111: 8, 31207: 8, 31110: 10, 31109: 8, 31200: 2,
+          31603: 9,
+          31212: 2, 31213: 2, 31604: 6, 31214: 2, 31503: 9, 31302: 0,
+          31402: 12,
+          31216: 1, 31217: 5, 31215: 7, 31220: 3, 31218: 11, 31219: 5,
+          31211: 7,
+          31221: 2, 31620: 6, 31222: 1, 31223: 6, 31112: 10, 31224: 2,
+          31225: 7,
+          31609: 11, 31226: 0, 31227: 1, 31228: 6, 31505: 9, 31229: 2,
           31230: 1,
-          31231: 1, 31232: 7, 31233: 2, 31234: 2, 31621: 7, 31235: 4, 31237: 8,
-          31624: 7, 31266: 1, 31304: 0, 31238: 1, 31240: 4, 31262: 1, 31260: 4,
-          31261: 4, 31113: 12, 31239: 2, 31241: 1, 31242: 4, 31243: 13,
-          31244: 13,
-          31245: 9, 31404: 14, 31506: 11, 31115: 5, 31116: 12, 31307: 0,
-          31246: 8,
-          31263: 1, 31507: 11, 31247: 6, 31248: 6, 31264: 7, 31249: 6,
+          31231: 1, 31232: 6, 31233: 2, 31234: 2, 31621: 6, 31235: 3, 31237: 7,
+          31624: 6, 31266: 1, 31304: 0, 31238: 1, 31240: 3, 31262: 1, 31260: 3,
+          31261: 3, 31113: 10, 31239: 2, 31241: 1, 31242: 3, 31243: 11,
+          31244: 11,
+          31245: 8, 31404: 12, 31506: 9, 31115: 4, 31116: 10, 31307: 0,
+          31246: 7,
+          31263: 1, 31507: 9, 31247: 5, 31248: 5, 31264: 6, 31249: 5,
           31250: 2,
-          31251: 1, 31252: 4, 31253: 2, 31254: 1, 31255: 8, 31256: 1, 31257: 4,
-          31258: 4, 31259: 4, 31265: 7, 31114: 12, 31405: 14, 31406: 14,
-          31312: 8,
-          31267: 2, 31117: 5, 31509: 11, 31268: 9, 31270: 7, 31118: 11,
-          31513: 11,
-          31271: 13, 31272: 13, 31633: 6, 31514: 10, 31119: 9, 31120: 9,
-          31121: 12, 31636: 7, 31273: 6, 31637: 7, 31638: 7, 31515: 3,
+          31251: 1, 31252: 3, 31253: 2, 31254: 1, 31255: 7, 31256: 1, 31257: 3,
+          31258: 3, 31259: 3, 31265: 6, 31114: 10, 31405: 12, 31406: 12,
+          31312: 7,
+          31267: 2, 31117: 4, 31509: 9, 31268: 8, 31270: 6, 31118: 9,
+          31513: 9,
+          31271: 11, 31272: 11, 31633: 5, 31514: -1, 31119: 8, 31120: 8,
+          31121: 10, 31636: 6, 31273: 5, 31637: 6, 31638: 6, 31515: -1,
           31274: 1,
-          31275: 8, 31276: 1, 31277: 4, 31278: 2, 31279: 4, 31522: 11,
-          31293: 8,
-          31280: 9, 31281: 7, 31122: 5, 31282: 2, 31283: 1, 31519: 11,
-          31284: 4,
-          31285: 2, 31123: 5, 31286: 1, 31287: 6, 31288: 13, 31289: 4,
-          31290: 6,
-          31642: 7, 31124: 5, 31291: 1, 31292: 4, 31125: 9, 31294: 13,
-          31295: 8,
-          31296: 12, 31297: 8, 31298: 1, 31126: 5, 31299: 2, 31321: 6,
-          31127: 4,
-          31128: 8, 31129: 1, 31646: 6, 31523: 11, 31649: 5, 31651: 5,
-          31417: 14,
-          31653: 7, 31655: 7, 31323: 12, 31418: 3, 31324: 2}
+          31275: 7, 31276: 1, 31277: 3, 31278: 2, 31279: 3, 31522: 9,
+          31293: 7,
+          31280: 8, 31281: 6, 31122: 4, 31282: 2, 31283: 1, 31519: 9,
+          31284: 3,
+          31285: 2, 31123: 4, 31286: 1, 31287: 5, 31288: 11, 31289: 3,
+          31290: 5,
+          31642: 6, 31124: 4, 31291: 1, 31292: 3, 31125: 8, 31294: 11,
+          31295: 7,
+          31296: 10, 31297: 7, 31298: 1, 31126: 4, 31299: 2, 31321: 5,
+          31127: 3,
+          31128: 7, 31129: 1, 31646: 5, 31523: 9, 31649: 4, 31651: 4,
+          31417: 12,
+          31653: 6, 31655: 6, 31323: 10, 31418: -1, 31324: 2}
     return bij
 
 bij = make_st_num_dict()
@@ -88,7 +89,8 @@ c_date = 0
 c_hour = 1
 c_st_st = 2
 c_en_st = 3
-num_clusture = 15
+num_clusture = 13
+time_inp = 3
 
 def give_date_time(arr):
      date = int(arr[8:10])
@@ -123,7 +125,7 @@ def date_od_arr_in(s_data, bij, num_clusture, day, season , holiday):
         hour = int(s_data[i,c_hour])
         #print(hour, start, end)
         if(start != -1 and end != -1):
-            od_arr[hour, start, end] += 1
+            od_arr[hour, start, end] += scale
 
     #od_arr = np.reshape(od_arr, (24, num_clusture * num_clusture))
 
@@ -139,22 +141,26 @@ def date_od_arr_out(s_data, bij, num_clusture):
         hour = int(s_data[i,c_hour])
         #print(hour, start, end)
         if(start != -1 and end != -1):
-            od_arr[hour, start, end] += 1
+            od_arr[hour, start, end] += scale
 
     return od_arr
 
-fout = open("../usefulData/all_data_out.bin" , "wb")
-fin = open("../usefulData/all_data_in.bin" , "wb")
+fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "wb")
+fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "wb")
 
-count = False
+counta = 0
+countb = 1
 year_data_in = []
 year_data_out = []
+lst = [None] * time_inp
+
 for month in range(1,13):
     st = time.time()
     print(month)
     print("Loading Data")
     data = get_months_data(month = month)
     print("Processing", time.time() - st)
+
 
     for date in range(1, 32):
         s_data = data[data[:, c_date] == date].copy()
@@ -164,41 +170,59 @@ for month in range(1,13):
         season = get_season(timest)
         day = get_day(timest)
         holiday = get_day(timest)
+
         for l in date_od_arr_out(s_data=s_data, bij=bij, num_clusture=num_clusture ):
-            if count:
+            if counta >= time_inp:
                 year_data_out.append(l)
+            counta += 1
 
-            count = True
-
-        for l2 in date_od_arr_in(s_data=s_data, bij=bij, num_clusture=num_clusture,
+        for l in date_od_arr_in(s_data=s_data, bij=bij, num_clusture=num_clusture,
                             season=season, day=day, holiday=holiday):
-            year_data_in.append(l2)
+            lst.pop(0)
+            lst.append(l)
+            if countb >= time_inp:
+                stacked_inp = None
+                for l2 in lst:
+                    l3 = np.array(l2)
+                    if isinstance(stacked_inp, np.ndarray):
+                        print(stacked_inp.shape)
+                        stacked_inp = np.vstack((stacked_inp,l3))
+                    else:
+                        stacked_inp = l3
+                print(stacked_inp.shape)
+                year_data_in.append(stacked_inp.tolist())
+
+            countb += 1
     print(time.time() - st)
+
+
 
 pickle.dump( year_data_out, fout)
 year_data_in.pop()
 pickle.dump(year_data_in, fin)
 
+print(len(year_data_out))
+print(len(year_data_in))
 
 fout.close()
 fin.close()
 
 
-fout = open("../usefulData/all_data_out.bin" , "rb")
-fin = open("../usefulData/all_data_in.bin" , "rb")
+fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "rb")
+fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "rb")
 
-fout7 = open("../usefulData/all_data_out7.bin" , "wb")
-fin7 = open("../usefulData/all_data_in7.bin" , "wb")
+fout7 = open("../usefulData/"+str(time_inp)+"_inp_data_out7_red.bin" , "wb")
+fin7 = open("../usefulData/"+str(time_inp)+"_inp_data_in7_red.bin" , "wb")
 
 
 data_in = pickle.load(fin)
 
 data7_in = []
-count = 1
 for i in range(365):
-    for k in range(7,20):
-        data7_in.append(data_in[24*i + k - count])
-        count = 0
+    for k in range(7,21):
+        if i <= 1 :
+            print(data_in[24*i + k - time_inp][-4][0])
+        data7_in.append(data_in[24*i + k - time_inp])
 
 data7_inarr = np.array(data7_in)
 print(data7_inarr.shape)
@@ -207,11 +231,10 @@ pickle.dump(data7_in, fin7)
 
 data_out = pickle.load(fout)
 data7_out = []
-count = 1
+
 for i in range(365):
-    for k in range(7,20):
-        data7_out.append(data_out[24*i + k - count])
-        count = 0
+    for k in range(7,21):
+        data7_out.append(data_out[24*i + k - time_inp])
 
 data7_outarr = np.array(data7_out)
 print(data7_outarr.shape)
