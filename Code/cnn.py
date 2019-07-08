@@ -10,7 +10,9 @@ tf.compat.v1.enable_eager_execution()
 
 input_dim = 17
 label_dim = 13
-time_inp = 3
+time_inp = 5
+epoch = 300
+denselayers = time_inp
 
 def get_data():
     fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7_red.bin" , "rb")
@@ -50,10 +52,9 @@ model.add(layers.Conv2D(30, (3, 3), activation='relu'))
 #model.summary()
 
 model.add(layers.Flatten())
-jump = int((time_inp*input_dim*input_dim - label_dim*label_dim) / time_inp)
-print(jump)
+jump = int((time_inp*input_dim*input_dim - label_dim*label_dim) / denselayers)
 
-for i in range(1,time_inp):
+for i in range(1,denselayers):
     model.add(layers.Dense( time_inp*input_dim*input_dim - jump* i, activation='relu'))
 
 model.add(layers.Dense(label_dim*label_dim, activation='relu'))
@@ -66,22 +67,28 @@ model.compile(optimizer='adam',
 
 #x = model.predict(test_images[0].reshape((1,19,19,1)))
 #print(x.shape)
-model.fit(train_images, train_labels, epochs=100)
+model.fit(train_images, train_labels, epochs=epoch)
 
 test_loss, test_acc = model.evaluate(test_images, test_labels)
 
 pred = model.predict(test_images)
 
 count = 0
+
+with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochs" , "wb") as f:
+    pickle.dump(pred,f)
+
 for t,s in zip(pred, test_labels):
     t = np.around(t).reshape((label_dim,label_dim))
     #print(t)
     #print(s)
+
     s = s.reshape((label_dim,label_dim))
     plt.imshow(t)
-    plt.savefig("../Graph/" + str(count) + '-Pred-graph.png')
-    plt.imshow(s)
     if count == 0:
         plt.colorbar()
+    plt.savefig("../Graph/" + str(count) + '-Pred-graph.png')
+    plt.imshow(s)
+
     plt.savefig("../Graph/" + str(count) + '-Actual-graph.png')
     count += 1

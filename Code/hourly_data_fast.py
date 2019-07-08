@@ -90,7 +90,7 @@ c_hour = 1
 c_st_st = 2
 c_en_st = 3
 num_clusture = 13
-time_inp = 3
+time_inp = 1
 
 def give_date_time(arr):
      date = int(arr[8:10])
@@ -240,3 +240,4 @@ data7_outarr = np.array(data7_out)
 print(data7_outarr.shape)
 
 pickle.dump(data7_out, fout7)
+
