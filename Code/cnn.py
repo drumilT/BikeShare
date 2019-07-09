@@ -11,19 +11,21 @@ tf.compat.v1.enable_eager_execution()
 input_dim = 17
 label_dim = 13
 time_inp = 5
-epoch = 300
+epoch = 500
 denselayers = time_inp
 
 def get_data():
-    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7_red.bin" , "rb")
-    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7_red.bin" , "rb")
+    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7am_red.bin" , "rb")
+    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7am_red.bin" , "rb")
     data_in = pickle.load(fin)
     data_out = pickle.load(fout)
-    X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.01, random_state=200)
+    X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.1, random_state=200)
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     X_test = np.array(X_test)
     y_test = np.array(y_test)
+    fout.close()
+    fin.close()
     return (X_train,y_train), (X_test, y_test)
 
 def abserr (y_true, y_pred):

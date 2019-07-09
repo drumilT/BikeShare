@@ -6,35 +6,15 @@ from datetime import  date as dtf
 import holidays
 import pickle
 
+###Control Variables####
 us_holidays = holidays.US()
-
 scale = 1
-
-def get_holiday(now):
-    if now in us_holidays:
-        return 1*scale
-    else:
-        return 0
-
-
-def get_season(now):
-    Y = 2000  # dummy leap year to allow input X-02-29 (leap day)
-    seasons = [(0.25, 'winter', (dtf(Y, 1, 1), dtf(Y, 3, 20))),
-               (0.5, 'spring', (dtf(Y, 3, 21), dtf(Y, 6, 20))),
-               (0.75, 'summer', (dtf(Y, 6, 21), dtf(Y, 9, 22))),
-               (1, 'autumn', (dtf(Y, 9, 23), dtf(Y, 12, 20))),
-               (0.25, 'winter', (dtf(Y, 12, 21), dtf(Y, 12, 31)))]
-
-    if isinstance(now, datetime):
-        now = now.dtf()
-    now = now.replace(year=Y)
-    return next( scale*season_num for season_num, season, (start, end) in seasons
-                if start <= now <= end)
-
-
-def get_day(now):
-    return  ((now.weekday()) + 1) / 7
-
+c_date = 0
+c_hour = 1
+c_st_st = 2
+c_en_st = 3
+num_clusture = 13
+time_inp = 5
 
 def make_st_num_dict():
     bij = {31100: 3, 31101: 8, 31102: 4, 31103: 4, 31104: 10, 31105: 4,
@@ -85,17 +65,38 @@ def make_st_num_dict():
     return bij
 
 bij = make_st_num_dict()
-c_date = 0
-c_hour = 1
-c_st_st = 2
-c_en_st = 3
-num_clusture = 13
-time_inp = 1
+
+def get_holiday(now):
+    if now in us_holidays:
+        return 1*scale
+    else:
+        return 0
+
+
+def get_season(now):
+    Y = 2000  # dummy leap year to allow input X-02-29 (leap day)
+    seasons = [(0.25, 'winter', (dtf(Y, 1, 1), dtf(Y, 3, 20))),
+               (0.5, 'spring', (dtf(Y, 3, 21), dtf(Y, 6, 20))),
+               (0.75, 'summer', (dtf(Y, 6, 21), dtf(Y, 9, 22))),
+               (1, 'autumn', (dtf(Y, 9, 23), dtf(Y, 12, 20))),
+               (0.25, 'winter', (dtf(Y, 12, 21), dtf(Y, 12, 31)))]
+
+    if isinstance(now, datetime):
+        now = now.dtf()
+    now = now.replace(year=Y)
+    return next( scale*season_num for season_num, season, (start, end) in seasons
+                if start <= now <= end)
+
+
+def get_day(now):
+    return  ((now.weekday()) + 1) / 7
+
 
 def give_date_time(arr):
      date = int(arr[8:10])
      hour = int(arr[11:13])
      return date, hour
+
 
 def get_months_data(month) :
     ext = "-capitalbikeshare-tripdata.csv"
@@ -109,6 +110,7 @@ def get_months_data(month) :
     #data = np.sort(data, axis = c_hour, kind = 'mergesort')
     #data = np.sort(data, axis = c_date, kind = 'mergesort')
     return data
+
 
 def date_od_arr_in(s_data, bij, num_clusture, day, season , holiday):
     od_arr = np.zeros((24, (num_clusture + 4) , (num_clusture+4) ))
@@ -131,6 +133,7 @@ def date_od_arr_in(s_data, bij, num_clusture, day, season , holiday):
 
     return od_arr
 
+
 def date_od_arr_out(s_data, bij, num_clusture):
     od_arr = np.zeros((24, num_clusture , num_clusture ))
 
@@ -145,99 +148,138 @@ def date_od_arr_out(s_data, bij, num_clusture):
 
     return od_arr
 
-fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "wb")
-fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "wb")
 
-counta = 0
-countb = 1
-year_data_in = []
-year_data_out = []
-lst = [None] * time_inp
+def create_total_input():
+    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "wb")
+    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "wb")
 
-for month in range(1,13):
-    st = time.time()
-    print(month)
-    print("Loading Data")
-    data = get_months_data(month = month)
-    print("Processing", time.time() - st)
+    counta = 0
+    countb = 1
+    year_data_in = []
+    year_data_out = []
+    lst = [None] * time_inp
 
-
-    for date in range(1, 32):
-        s_data = data[data[:, c_date] == date].copy()
-        if(s_data.shape[0] == 0):
-            continue
-        timest = dtf(2018, month, date)
-        season = get_season(timest)
-        day = get_day(timest)
-        holiday = get_day(timest)
-
-        for l in date_od_arr_out(s_data=s_data, bij=bij, num_clusture=num_clusture ):
-            if counta >= time_inp:
-                year_data_out.append(l)
-            counta += 1
-
-        for l in date_od_arr_in(s_data=s_data, bij=bij, num_clusture=num_clusture,
-                            season=season, day=day, holiday=holiday):
-            lst.pop(0)
-            lst.append(l)
-            if countb >= time_inp:
-                stacked_inp = None
-                for l2 in lst:
-                    l3 = np.array(l2)
-                    if isinstance(stacked_inp, np.ndarray):
-                        print(stacked_inp.shape)
-                        stacked_inp = np.vstack((stacked_inp,l3))
-                    else:
-                        stacked_inp = l3
-                print(stacked_inp.shape)
-                year_data_in.append(stacked_inp.tolist())
-
-            countb += 1
-    print(time.time() - st)
+    for month in range(1,13):
+        st = time.time()
+        print(month)
+        print("Loading Data")
+        data = get_months_data(month = month)
+        print("Processing", time.time() - st)
 
 
+        for date in range(1, 32):
+            s_data = data[data[:, c_date] == date].copy()
+            if(s_data.shape[0] == 0):
+                continue
+            timest = dtf(2018, month, date)
+            season = get_season(timest)
+            day = get_day(timest)
+            holiday = get_day(timest)
 
-pickle.dump( year_data_out, fout)
-year_data_in.pop()
-pickle.dump(year_data_in, fin)
+            for l in date_od_arr_out(s_data=s_data, bij=bij, num_clusture=num_clusture ):
+                if counta >= time_inp:
+                    year_data_out.append(l)
+                counta += 1
 
-print(len(year_data_out))
-print(len(year_data_in))
+            for l in date_od_arr_in(s_data=s_data, bij=bij, num_clusture=num_clusture,
+                                season=season, day=day, holiday=holiday):
+                lst.pop(0)
+                lst.append(l)
+                if countb >= time_inp:
+                    stacked_inp = None
+                    for l2 in lst:
+                        l3 = np.array(l2)
+                        if isinstance(stacked_inp, np.ndarray):
+                            print(stacked_inp.shape)
+                            stacked_inp = np.vstack((stacked_inp,l3))
+                        else:
+                            stacked_inp = l3
+                    print(stacked_inp.shape)
+                    year_data_in.append(stacked_inp.tolist())
 
-fout.close()
-fin.close()
+                countb += 1
+        print(time.time() - st)
 
 
-fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "rb")
-fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "rb")
 
-fout7 = open("../usefulData/"+str(time_inp)+"_inp_data_out7_red.bin" , "wb")
-fin7 = open("../usefulData/"+str(time_inp)+"_inp_data_in7_red.bin" , "wb")
+    pickle.dump( year_data_out, fout)
+    year_data_in.pop()
+    pickle.dump(year_data_in, fin)
+
+    print(len(year_data_out))
+    print(len(year_data_in))
+
+    fout.close()
+    fin.close()
 
 
-data_in = pickle.load(fin)
+def create_7_to_8pm_data():
+    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "rb")
+    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "rb")
 
-data7_in = []
-for i in range(365):
-    for k in range(7,21):
-        if i <= 1 :
-            print(data_in[24*i + k - time_inp][-4][0])
-        data7_in.append(data_in[24*i + k - time_inp])
+    fout7 = open("../usefulData/"+str(time_inp)+"_inp_data_out7_red.bin" , "wb")
+    fin7 = open("../usefulData/"+str(time_inp)+"_inp_data_in7_red.bin" , "wb")
 
-data7_inarr = np.array(data7_in)
-print(data7_inarr.shape)
 
-pickle.dump(data7_in, fin7)
+    data_in = pickle.load(fin)
 
-data_out = pickle.load(fout)
-data7_out = []
+    data7_in = []
+    for i in range(365):
+        for k in range(7,21):
+            if i <= 1 :
+                print(data_in[24*i + k - time_inp][-4][0])
+            data7_in.append(data_in[24*i + k - time_inp])
 
-for i in range(365):
-    for k in range(7,21):
-        data7_out.append(data_out[24*i + k - time_inp])
+    data7_inarr = np.array(data7_in)
+    print(data7_inarr.shape)
 
-data7_outarr = np.array(data7_out)
-print(data7_outarr.shape)
+    pickle.dump(data7_in, fin7)
 
-pickle.dump(data7_out, fout7)
+    data_out = pickle.load(fout)
+    data7_out = []
 
+    for i in range(365):
+        for k in range(7,21):
+            data7_out.append(data_out[24*i + k - time_inp])
+
+    data7_outarr = np.array(data7_out)
+    print(data7_outarr.shape)
+
+    pickle.dump(data7_out, fout7)
+
+
+def create_5_to_10am_data():
+    fout = open("../usefulData/" + str(time_inp) + "_inp_data_out_red.bin", "rb")
+    fin = open("../usefulData/" + str(time_inp) + "_inp_data_in_red.bin", "rb")
+
+    fout7 = open("../usefulData/" + str(time_inp) + "_inp_data_out7am_red.bin", "wb")
+    fin7 = open("../usefulData/" + str(time_inp) + "_inp_data_in7am_red.bin", "wb")
+
+    data_in = pickle.load(fin)
+
+    data7_in = []
+    for i in range(365):
+        for k in range(5, 11):
+            if i <= 1:
+                print(data_in[24 * i + k - time_inp][-4][0])
+            data7_in.append(data_in[24 * i + k - time_inp])
+
+    data7_inarr = np.array(data7_in)
+    print(data7_inarr.shape)
+
+    pickle.dump(data7_in, fin7)
+
+    data_out = pickle.load(fout)
+    data7_out = []
+
+    for i in range(365):
+        for k in range(5, 11):
+            data7_out.append(data_out[24 * i + k - time_inp])
+
+    data7_outarr = np.array(data7_out)
+    print(data7_outarr.shape)
+
+    pickle.dump(data7_out, fout7)
+
+create_total_input()
+create_5_to_10am_data()
