@@ -5,7 +5,7 @@ import numpy as np
 from skimage.measure import compare_ssim as ssim
 
 class KMeans:
-    def __init__(self, k= 3, tol= 0.1, max_iter=3000):
+    def __init__(self, k= 3, tol= 0.1, max_iter=500):
         self.k = k
         self.tol = tol
         self.max_iter = max_iter
@@ -38,7 +38,7 @@ class KMeans:
         for c in self.centroids:
             original_centroid = prev_centroids[c]
             current_centroid = self.centroids[c]
-            if ( 1 - ssim(current_centroid , original_centroid) ) * 10.0 < self.tol:
+            if ( 1 - ssim(current_centroid , original_centroid) ) < self.tol:
                 print(np.sum((current_centroid - original_centroid) / original_centroid * 100.0))
                 print("Optimized")
                 optimized = False
@@ -54,6 +54,7 @@ class KMeans:
 
 
 for time in range(0,24):
+    print(time)
     fout = open("../usefulData/all_data_out.bin" , "rb")
     data_out = pickle.load(fout)
     data7_out = []

@@ -8,7 +8,7 @@ def met(im1,im2):
     return  1 - ssim(im1,im2)
 
 time = 10
-for time in range(0,24):
+for time in range(0,1):
     fout = open("../usefulData/all_data_out.bin" , "rb")
     data_out = pickle.load(fout)
     data7_out = []
@@ -22,9 +22,12 @@ for time in range(0,24):
 
     data7_out = np.array(data7_out)
 
-    kmeans = km.KMeans(n_clusters=2, random_state=0).fit(data7_out)
+    #kmeans = km.KMeans(n_clusters=2, random_state=0).fit(data7_out)
 
-    #kmeans = DBSCAN(eps = 0.1  , min_samples=10, metric= met ).fit(data7_out)
+    for eps in range(1,50, 2 ):
+        kmeans = DBSCAN(eps = eps/100  , min_samples=10, metric= met ).fit(data7_out)
+        print(eps)
+        print(kmeans.labels_)
 
     data = { 1:{ 0:0, 1:0 , 2:0 ,3:0 , 4:0, 5:0 , 6:0} ,0: {0:0 , 1:0 , 2:0 ,3:0 , 4:0, 5:0 , 6:0}}
 

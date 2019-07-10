@@ -14,7 +14,7 @@ c_hour = 1
 c_st_st = 2
 c_en_st = 3
 num_clusture = 13
-time_inp = 5
+time_inp = 2
 
 def make_st_num_dict():
     bij = {31100: 3, 31101: 8, 31102: 4, 31103: 4, 31104: 10, 31105: 4,
@@ -259,7 +259,7 @@ def create_5_to_10am_data():
 
     data7_in = []
     for i in range(365):
-        for k in range(5, 11):
+        for k in range(7, 10):
             if i <= 1:
                 print(data_in[24 * i + k - time_inp][-4][0])
             data7_in.append(data_in[24 * i + k - time_inp])
@@ -273,7 +273,7 @@ def create_5_to_10am_data():
     data7_out = []
 
     for i in range(365):
-        for k in range(5, 11):
+        for k in range(7, 10):
             data7_out.append(data_out[24 * i + k - time_inp])
 
     data7_outarr = np.array(data7_out)
@@ -281,5 +281,48 @@ def create_5_to_10am_data():
 
     pickle.dump(data7_out, fout7)
 
-create_total_input()
+def create_7_to_9am_data():
+    fout = open("../usefulData/" + str(time_inp) + "_inp_data_out_red.bin", "rb")
+    fin = open("../usefulData/" + str(time_inp) + "_inp_data_in_red.bin", "rb")
+
+    fout7 = open("../usefulData/" + str(time_inp) + "_inp_data_out729_red.bin", "wb")
+    fin7 = open("../usefulData/" + str(time_inp) + "_inp_data_in729_red.bin", "wb")
+
+    data_in = pickle.load(fin)
+
+    data7_in = []
+    for i in range(365):
+        for k in range(7, 10):
+            if i <= 1:
+                print(data_in[24 * i + k - time_inp][-4][0])
+            lst = data_in[24 * i + k - time_inp]
+            lst2 = np.array(lst)
+            lst2= lst2[:13:,:13:]
+            print(lst2.shape)
+            lst2 = lst2.flatten().tolist()
+            for i in range(4):
+                lst2.append(lst[-4+i][0])
+            print(len(lst2))
+            data7_in.append(lst2)
+
+    data7_inarr = np.array(data7_in)
+    print(data7_inarr.shape)
+
+    pickle.dump(data7_in, fin7)
+
+    data_out = pickle.load(fout)
+    data7_out = []
+
+    for i in range(365):
+        for k in range(7, 10):
+            data7_out.append(data_out[24 * i + k - time_inp])
+
+    data7_outarr = np.array(data7_out)
+    print(data7_outarr.shape)
+
+
+    pickle.dump(data7_out, fout7)
+
+#create_total_input()
+#create_7_to_9am_data()
 create_5_to_10am_data()
