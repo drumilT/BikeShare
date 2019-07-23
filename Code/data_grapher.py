@@ -3,17 +3,18 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from skimage.measure import compare_ssim as ssim
-
-time_inp = 5
+model = "CNN"
+time_inp = 1
 denselayers = 5
-epoch = 30
-fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7_red.bin" , "rb")
-fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7_red.bin" , "rb")
+epoch = 50
+fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7am_red.bin" , "rb")
+fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7am_red.bin" , "rb")
 data_in = pickle.load(fin)
 data_out = pickle.load(fout)
-X_train, X_test, y_train, label = train_test_split(data_in, data_out, test_size=0.01, random_state=200)
-
-with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochs" , "rb") as f:
+X_train, X_test, y_train, label = train_test_split(data_in, data_out, test_size=0.1, random_state=20)
+fout.close()
+fin.close()
+with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochs"+model , "rb") as f:
     pred = pickle.load(f)
 
 
@@ -52,8 +53,15 @@ plt.scatter(pred, label, s=1)
     # Set x, y label text.
 plt.ylabel("Label")
 plt.xlabel("Pred")
-x = np.linspace(0, 60, 1000)
+x3 = np.linspace(11, 35, 500)
+x2 = np.linspace(6,10,50)
+x1 = np.linspace(0,5,50)
+x = np.linspace(0,35,1000)
 plt.plot(x, x + 0, linestyle='solid', color='g')
-plt.plot(x, x + 10, linestyle='solid', color='r')
-plt.plot(x, x - 10, linestyle='solid', color='r')
+plt.plot(x1, x1 + 2, linestyle='solid', color='r')
+plt.plot(x1, x1 - 2, linestyle='solid', color='r')
+plt.plot(x2, x2 + 3, linestyle='solid', color='r')
+plt.plot(x2, x2 - 3, linestyle='solid', color='r')
+plt.plot(x3, 0.8*x3 , linestyle='solid', color='r')
+plt.plot(x3, 1.2*x3 , linestyle='solid', color='r')
 plt.show()

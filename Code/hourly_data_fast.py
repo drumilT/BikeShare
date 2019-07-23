@@ -6,6 +6,7 @@ from datetime import  date as dtf
 import holidays
 import pickle
 
+
 ###Control Variables####
 us_holidays = holidays.US()
 scale = 1
@@ -14,8 +15,9 @@ c_hour = 1
 c_st_st = 2
 c_en_st = 3
 num_clusture = 13
-time_inp = 2
-
+time_inp = 3
+new_bij = {31305: 0, 31302: 1, 31226: 2, 31304: 3, 31307: 4, 31203: 5, 31216: 6, 31222: 7, 31227: 8, 31230: 9, 31231: 10, 31266: 11, 31238: 12, 31262: 13, 31241: 14, 31263: 15, 31251: 16, 31254: 17, 31256: 18, 31274: 19, 31276: 20, 31283: 21, 31286: 22, 31291: 23, 31298: 24, 31129: 25, 31201: 26, 31200: 27, 31212: 28, 31213: 29, 31214: 30, 31221: 31, 31224: 32, 31229: 33, 31233: 34, 31234: 35, 31239: 36, 31250: 37, 31253: 38, 31267: 39, 31278: 40, 31282: 41, 31285: 42, 31299: 43, 31324: 44, 31100: 45, 31204: 46, 31205: 47, 31206: 48, 31220: 49, 31235: 50, 31240: 51, 31260: 52, 31261: 53, 31242: 54, 31252: 55, 31257: 56, 31258: 57, 31259: 58, 31277: 59, 31279: 60, 31284: 61, 31289: 62, 31292: 63, 31127: 64, 31102: 65, 31103: 66, 31105: 67, 31107: 68, 31400: 69, 31401: 70, 31602: 71, 31115: 72, 31117: 73, 31122: 74, 31123: 75, 31124: 76, 31126: 77, 31649: 78, 31651: 79, 31217: 80, 31219: 81, 31247: 82, 31248: 83, 31249: 84, 31633: 85, 31273: 86, 31287: 87, 31290: 88, 31321: 89, 31646: 90, 31600: 91, 31604: 92, 31620: 93, 31223: 94, 31228: 95, 31232: 96, 31621: 97, 31624: 98, 31264: 99, 31265: 100, 31270: 101, 31636: 102, 31637: 103, 31638: 104, 31281: 105, 31642: 106, 31653: 107, 31655: 108, 31215: 109, 31211: 110, 31225: 111, 31237: 112, 31246: 113, 31255: 114, 31312: 115, 31275: 116, 31293: 117, 31295: 118, 31297: 119, 31128: 120, 31101: 121, 31202: 122, 31111: 123, 31207: 124, 31109: 125, 31245: 126, 31268: 127, 31119: 128, 31120: 129, 31280: 130, 31125: 131, 31603: 132, 31503: 133, 31505: 134, 31506: 135, 31507: 136, 31509: 137, 31118: 138, 31513: 139, 31522: 140, 31519: 141, 31523: 142, 31104: 143, 31106: 144, 31110: 145, 31112: 146, 31113: 147, 31116: 148, 31114: 149, 31121: 150, 31296: 151, 31323: 152, 31108: 153, 31218: 154, 31609: 155, 31243: 156, 31244: 157, 31271: 158, 31272: 159, 31288: 160, 31294: 161, 31402: 162, 31404: 163, 31405: 164, 31406: 165, 31417: 166}
+input_len = 167
 def make_st_num_dict():
     bij = {31100: 3, 31101: 8, 31102: 4, 31103: 4, 31104: 10, 31105: 4,
           31106: 10,
@@ -101,12 +103,14 @@ def give_date_time(arr):
 def get_months_data(month) :
     ext = "-capitalbikeshare-tripdata.csv"
     df = pd.read_csv("../Data/" + str(201800 + month) + ext)
-    data = np.zeros((df.shape[0], 4))
     df.columns = df.columns.str.strip().str.lower().str.replace(' ',  '_').str.replace('(', '').str.replace(')', '')
+    df = df[df.member_type=="Member"]
+    data = np.zeros((df.shape[0], 4))
     for i in range(data.shape[0]):
-        data[i, c_date], data[i, c_hour] = give_date_time(df.start_date[i])
-        data[i, c_st_st] = df.start_station_number[i]
-        data[i, c_en_st] = df.end_station_number[i]
+        #print(df.index[i])
+        data[i, c_date], data[i, c_hour] = give_date_time(df.start_date[df.index[i]])
+        data[i, c_st_st] = df.start_station_number[df.index[i]]
+        data[i, c_en_st] = df.end_station_number[df.index[i]]
     #data = np.sort(data, axis = c_hour, kind = 'mergesort')
     #data = np.sort(data, axis = c_date, kind = 'mergesort')
     return data
@@ -133,6 +137,27 @@ def date_od_arr_in(s_data, bij, num_clusture, day, season , holiday):
 
     return od_arr
 
+def date_od_arr_in_new(s_data, bij, num_clusture, day, season , holiday):
+    od_arr = np.zeros((24, input_len + 1, input_len ))
+
+    od_arr[:, input_len,int(input_len/4) : 2*int(input_len/4) ] = day
+    od_arr[:, input_len, 2*int(input_len/4):3*int(input_len/4) ] = season
+    od_arr[:, input_len, 3*int(input_len/4): 4*int(input_len/4)] = holiday
+    for i in range(24):
+        od_arr[i,input_len, : int(input_len/4)] = i/23
+
+    for i in range(s_data.shape[0]):
+        start = new_bij.setdefault(s_data[i,c_st_st], -1)
+        end = new_bij.setdefault(s_data[i,c_en_st], -1)
+        hour = int(s_data[i,c_hour])
+        #print(hour, start, end)
+        if(start != -1 and end != -1):
+            od_arr[hour, start, end] += scale
+
+    #od_arr = np.reshape(od_arr, (24, num_clusture * num_clusture))
+
+    return od_arr
+
 
 def date_od_arr_out(s_data, bij, num_clusture):
     od_arr = np.zeros((24, num_clusture , num_clusture ))
@@ -148,10 +173,43 @@ def date_od_arr_out(s_data, bij, num_clusture):
 
     return od_arr
 
+def create_166_input_new():
+
+    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_166_mem.bin" , "wb")
+    year_data_in = []
+    year_data_out = []
+    for month in range(1,13):
+        st = time.time()
+        print(month)
+        print("Loading Data")
+        data = get_months_data(month = month)
+        print("Processing", time.time() - st)
+
+        for date in range(1, 32):
+            s_data = data[data[:, c_date] == date].copy()
+            if(s_data.shape[0] == 0):
+                continue
+            timest = dtf(2018, month, date)
+            season = get_season(timest)
+            day = get_day(timest)
+            holiday = get_day(timest)
+
+            timet = [6,7,8]
+            counta = 0
+            for l in date_od_arr_in_new(s_data=s_data, bij=bij, num_clusture=num_clusture,
+                                season=season, day=day, holiday=holiday):
+                if counta in timet:
+                    year_data_in.append(l)
+                counta += 1
+        print(time.time() - st)
+
+    pickle.dump(year_data_in, fin)
+    print(len(year_data_in))
+    fin.close()
 
 def create_total_input():
-    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "wb")
-    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "wb")
+    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red_mem.bin" , "wb")
+    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red_mem.bin" , "wb")
 
     counta = 0
     countb = 1
@@ -249,18 +307,18 @@ def create_7_to_8pm_data():
 
 
 def create_5_to_10am_data():
-    fout = open("../usefulData/" + str(time_inp) + "_inp_data_out_red.bin", "rb")
-    fin = open("../usefulData/" + str(time_inp) + "_inp_data_in_red.bin", "rb")
+    fout = open("../usefulData/" + str(time_inp) + "_inp_data_out_red_mem.bin", "rb")
+    fin = open("../usefulData/" + str(time_inp) + "_inp_data_in_red_mem.bin", "rb")
 
-    fout7 = open("../usefulData/" + str(time_inp) + "_inp_data_out7am_red.bin", "wb")
-    fin7 = open("../usefulData/" + str(time_inp) + "_inp_data_in7am_red.bin", "wb")
+    fout7 = open("../usefulData/" + str(time_inp) + "_inp_data_out7am_red_mem.bin", "wb")
+    fin7 = open("../usefulData/" + str(time_inp) + "_inp_data_in7am_red_mem.bin", "wb")
 
     data_in = pickle.load(fin)
 
     data7_in = []
     for i in range(365):
         for k in range(7, 10):
-            if i <= 1:
+            if i <= 100:
                 print(data_in[24 * i + k - time_inp][-4][0])
             data7_in.append(data_in[24 * i + k - time_inp])
 
@@ -323,6 +381,56 @@ def create_7_to_9am_data():
 
     pickle.dump(data7_out, fout7)
 
-#create_total_input()
+def create_csv(bin_src):
+
+    with open(bin_src,"rb") as f:
+        data = pickle.load(f)
+
+    path = bin_src[:-3] + "csv"
+    print(path)
+    lent = len(data)
+    data = np.array(data).flatten()
+    data = data.reshape((lent , int(len(data) / lent) ))
+    pd.DataFrame(np.array(data)).to_csv(path)
+
+def create_exp():
+    fout = open("../usefulData/" + str(time_inp) + "_inp_data_out7am_red.bin", "rb")
+    fin = open("../usefulData/" + str(time_inp) + "_inp_data_in7am_red.bin", "rb")
+
+    fout7 = open("../usefulData/" + str(time_inp) + "_inp_data_out7amEXP_red.bin", "wb")
+    fin7 = open("../usefulData/" + str(time_inp) + "_inp_data_in7amEXP_red.bin", "wb")
+
+    data_in = pickle.load(fin)
+
+    data7_in = []
+
+    for data in data_in:
+        dataEXP = np.array(data)
+        dataEXP = np.exp(dataEXP)
+        data7_in.append(dataEXP)
+
+    data7_inarr = np.array(data7_in)
+    print(data7_inarr.shape)
+    print(data7_inarr[0])
+    pickle.dump(data7_in, fin7)
+
+    data_out = pickle.load(fout)
+    data7_out = []
+
+    for data in data_out:
+        dataEXP = np.array(data)
+        dataEXP = np.exp(dataEXP)
+        data7_out.append(dataEXP)
+
+    data7_outarr = np.array(data7_out)
+    print(data7_outarr.shape)
+
+    pickle.dump(data7_out, fout7)
+
+
+create_total_input()
 #create_7_to_9am_data()
 create_5_to_10am_data()
+#create_csv("../usefulData/" + str(time_inp) + "_inp_data_out729_red.bin")
+#create_exp()
+#create_166_input_new()

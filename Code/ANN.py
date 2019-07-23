@@ -11,7 +11,7 @@ from error_function import travel_data_accuracy, travel_data_error
 input_dim = 173
 label_dim = 13
 time_inp = 1
-epoch = 100
+epoch = 70
 denselayers = 11
 
 def get_data():

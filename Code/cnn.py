@@ -10,20 +10,26 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 
 from error_function import travel_data_error,travel_data_accuracy,travel_error
-    
-   
+
+exp = False
 input_dim = 17
 label_dim = 13
-time_inp = 1
+time_inp = 5
 epoch = 50
 denselayers = 5
 
+file_out = open("../cnn.txt","w")
+
 def get_data():
-    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7am_red.bin" , "rb")
-    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7am_red.bin" , "rb")
+    if exp:
+        src = "EXP"
+    else:
+        src = ""
+    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7am"+src+"_red_mem.bin" , "rb")
+    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7am"+src+"_red_mem.bin" , "rb")
     data_in = pickle.load(fin)
     data_out = pickle.load(fout)
-    X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.1, random_state=200)
+    X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.1, random_state=100)
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     X_test = np.array(X_test)
@@ -37,74 +43,112 @@ def abserr (y_true, y_pred):
     val = 100* (np.mean(np.abs(y_pred - y_true) / np.abs(np.mean(y_true))))
     return val
 
+def run():
+    file_out.write(str(epoch) + 'epoch ' + str(denselayers) + "dense" + str(time_inp) + "time_inp")
+    (train_images, train_labels), (test_images, test_labels) = get_data()
 
-(train_images, train_labels), (test_images, test_labels) = get_data()
+    train_images = train_images.reshape((train_images.shape[0], time_inp*input_dim, input_dim, 1))
+    test_images = test_images.reshape((test_images.shape[0], time_inp*input_dim, input_dim, 1))
 
-train_images = train_images.reshape((train_images.shape[0], time_inp*input_dim, input_dim, 1))
-test_images = test_images.reshape((test_images.shape[0], time_inp*input_dim, input_dim, 1))
+    train_labels = train_labels.reshape((train_labels.shape[0], label_dim*label_dim))
+    test_labels = test_labels.reshape((test_labels.shape[0], label_dim*label_dim))
 
-train_labels = train_labels.reshape((train_labels.shape[0], label_dim*label_dim))
-test_labels = test_labels.reshape((test_labels.shape[0], label_dim*label_dim))
-    
 
-model = models.Sequential()
-model.add(layers.Conv2D(32, (2, 2), activation='relu', input_shape=(time_inp*input_dim, input_dim, 1)))
-model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(64, (2, 2), activation='relu'))
-model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(64, (2, 2), activation='relu'))
+    model = models.Sequential()
+    model.add(layers.Conv2D(32, (2, 2), activation='relu', input_shape=(time_inp*input_dim, input_dim, 1)))
+    #model.add(layers.MaxPooling2D((2, 2)))
+    model.add(layers.Conv2D(64, (2, 2), activation='relu'))
+    #model.add(layers.MaxPooling2D((2, 2)))
+    model.add(layers.Conv2D(64, (2, 2), activation='relu'))
 
-model.summary()
+    model.summary()
 
-model.add(layers.Flatten(input_shape=(time_inp*input_dim,input_dim,1)))
-model.add(layers.Flatten())
-    
-jump = int((time_inp*input_dim*input_dim - label_dim*label_dim) / denselayers)
-   
-for i in range(1,denselayers):
-   model.add(layers.Dense( time_inp*input_dim*input_dim - jump* i, activation='relu'))
+    model.add(layers.Flatten(input_shape=(time_inp*input_dim,input_dim,1)))
+    model.add(layers.Flatten())
 
-model.add(layers.Dense(label_dim*label_dim, activation='relu'))
-   
-model.summary()
-  
-model.compile(optimizer='adam',
-              loss= 'mse',
-              metrics= ['accuracy', travel_error])
-   
-#x = model.predict(test_images[0].reshape((1,19,19,1)))
-#print(x.shape)
-model.fit(train_images, train_labels, epochs=epoch)
-   
-test_loss, test_acc, b = model.evaluate(test_images, test_labels)
-   
-pred = model.predict(test_images)
+    jump = int((time_inp*input_dim*input_dim - label_dim*label_dim) / denselayers)
 
-count = 0
+    for i in range(1,denselayers):
+       model.add(layers.Dense( time_inp*input_dim*input_dim - jump* i, activation='relu'))
 
-#pred = np.array(pred).reshape((len(pred), label_dim,label_dim))
+    model.add(layers.Dense(label_dim*label_dim, activation='relu'))
 
-with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochsCNN" , "wb") as f:
-    pickle.dump(pred,f)
+    model.summary()
 
-  
-arre =[]
-arra =[]
-for t,s in zip(pred, test_labels):
-    print(count)
-    arre.append(travel_data_error(s,t))
-    arra.append(travel_data_accuracy(s,t))
-    t = np.around(t).reshape((label_dim,label_dim))
-    s = s.reshape((label_dim,label_dim))
-    plt.imshow(t)
-    plt.colorbar()
-    plt.savefig("../Graph/CNN/" + str(count) + '-Pred-graph.png')
-    plt.imshow(s)
+    model.compile(optimizer='adam',
+                  loss= "mse",
+                  metrics= ['accuracy','mse'])
 
-    plt.savefig("../Graph/CNN/" + str(count) + '-Actual-graph.png')
-    plt.close()
-    count += 1
-print(arre)
-print(np.mean(np.array(arre)))
-print(arra)
-print(np.mean(np.array(arra)))
+    #x = model.predict(test_images[0].reshape((1,19,19,1)))
+    #print(x.shape)
+    history = model.fit(train_images, train_labels, epochs=epoch)
+
+    test_loss, test_acc, b = model.evaluate(test_images, test_labels)
+    file_out.write(str(test_loss))
+    file_out.write(str(test_acc))
+    pred = model.predict(test_images)
+
+    count = 0
+
+    #pred = np.array(pred).reshape((len(pred), label_dim,label_dim))
+
+    with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochsCNN" , "wb") as f:
+        pickle.dump(pred,f)
+
+    print(history.history.keys())
+    plt.plot(history.history['accuracy'])
+    #plt.plot(history.history['val_acc'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch '+str(denselayers)+"dense"+str(time_inp)+"time_inpCNN")
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+
+    plt.plot(history.history['mse'])
+    #plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch'+str(denselayers)+"dense"+str(time_inp)+"time_inpCNN")
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+
+    arre =[]
+    arra =[]
+    for t,s in zip(pred, test_labels):
+        #print(count)
+        if exp :
+            s = np.log(s)
+            t = np.log(t)
+
+        arre.append(travel_data_error(s,t))
+        arra.append(travel_data_accuracy(s,t))
+        t = np.around(t)
+        s = np.around(s)
+        t = t.reshape((label_dim,label_dim))
+        s = s.reshape((label_dim,label_dim))
+        #plt.imshow(t)
+        #plt.colorbar()
+        #plt.savefig("../Graph/CNN/" + str(count) + '-Pred-graph.png')
+        #plt.imshow(s)
+
+        #plt.savefig("../Graph/CNN/" + str(count) + '-Actual-graph.png')
+        #plt.close()
+        count += 1
+    print(arre)
+    print(np.mean(np.array(arre)))
+    file_out.write(str(np.mean(np.array(arre))))
+    print(arra)
+    print(np.mean(np.array(arra)))
+    file_out.write(str(np.mean(np.array(arra))))
+    file_out.write("\n")
+time_inps = [1,3,5]
+epochs = [50,100,500,1000]
+denselayerss =[5,7,9,11,13]
+for t in time_inps:
+    for e in epochs:
+        for d in denselayerss:
+            if e >= d*5:
+                time_inp = t
+                epoch = e
+                denselayers = d
+                run()
