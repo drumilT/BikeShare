@@ -1,3 +1,4 @@
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import tensorflow as tf
@@ -5,7 +6,9 @@ import tensorflow as tf
 
 def punisher( pred, act):
 
-    #print(type(pred))
+    #as the function name this decides the ranges and tolerances that one is willing to accept as error
+
+
     ranges = [[0, 5], [6, 10], [11, 100]]
     tolerances = [2, 3, 0.2]
     comb = zip(ranges,tolerances)
@@ -20,17 +23,17 @@ def punisher( pred, act):
 
     error = 1000
 
-    if abs(act-pred) < tol :
+    if abs(act-pred) <= tol :
         error = 0
     else:
         error = (act-pred) * (act-pred)
 
     return error
 
-
 def travel_data_accuracy( labelS, predS):
 
-    #print(type(predS))
+    # return the mean accuracy of an label and prediction matrix
+    # accuracy is 1 if the value is well within the tolerance as defined in punisher, else 0
 
     erlst =[]
 
@@ -48,6 +51,8 @@ def travel_data_accuracy( labelS, predS):
     return np.mean(np.array(acclst))
 
 def travel_data_error( labelS, predS):
+    # return the mean error of an label and prediction matrix
+    # error is 0 if the value is well within the tolerance as defined in punisher, else its mse
 
     erlst = []
     for i in range(len(labelS)):
@@ -55,6 +60,10 @@ def travel_data_error( labelS, predS):
 
     return np.mean(np.array(erlst))
 
+
+#### Everything defined below is primary made for the model to train on using only backend functions
+# however is very heavy and slow due to reasons not known
+# functions same as the above defined functions
 @tf.function
 def tol(act):
     ranges = [[0, 5], [6, 10], [11, 100]]
@@ -90,7 +99,6 @@ def check_neg(val):
         return 4.0
     else:
         return 1.0
-
 def travel_error(labelS, predS):
 
     labelrs = K.flatten(labelS)

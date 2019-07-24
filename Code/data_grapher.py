@@ -3,65 +3,128 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from skimage.measure import compare_ssim as ssim
+from error_function import travel_data_accuracy, travel_data_error
+label_dim = 13
 model = "CNN"
-time_inp = 1
-denselayers = 5
-epoch = 50
-fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7am_red.bin" , "rb")
-fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7am_red.bin" , "rb")
-data_in = pickle.load(fin)
-data_out = pickle.load(fout)
-X_train, X_test, y_train, label = train_test_split(data_in, data_out, test_size=0.1, random_state=20)
-fout.close()
-fin.close()
-with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochs"+model , "rb") as f:
-    pred = pickle.load(f)
+time_inp = 5
+denselayers = 15
+epoch = 500
+
+acc = []
+ssima = []
+mse = []
+error = []
+good= []
+def run():
+    print(str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochsCNN")
+
+    fout = open("../usefulData/"+str(time_inp)+"_inp_data_out7am_red_mem.bin" , "rb")
+    fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7am_red_mem.bin" , "rb")
+    data_in = pickle.load(fin)
+    data_out = pickle.load(fout)
+    X_train, X_test, y_train, label = train_test_split(data_in, data_out, test_size=0.1, random_state=100)
+    fout.close()
+    fin.close()
+    with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochs"+model , "rb") as f:
+        pred = pickle.load(f)
 
 
-label = np.array(label)
-pred = np.array(pred.reshape((len(pred),13,13)))
+    label = np.array(label)
+    pred = np.array(pred.reshape((len(pred),13,13)))
 
-sarr = np.zeros(len(label))
-marr = np.zeros(len(label))
-for i in range(len(sarr)):
-    sarr[i] = ssim(label[i],pred[i])
+    sarr = np.zeros(len(label))
+    marr = np.zeros(len(label))
+    for i in range(len(sarr)):
+        sarr[i] = ssim(label[i],pred[i])
 
-for i in range(len(label)):
-    marr[i] = np.mean( np.square((label[i] - pred[i])))
+    for i in range(len(label)):
+        marr[i] = np.mean( np.square((label[i] - pred[i])))
 
 
 
-print(sarr)
-print(np.mean(sarr))
-print(np.min(sarr))
-print(np.max(sarr))
+    #print(sarr)
+    print(np.mean(sarr))
+    ssima.append( np.mean(sarr))
+    #print(np.min(sarr))
+    #print(np.max(sarr))
 
-print(marr)
-print(np.mean(marr))
-print(np.min(marr))
-print(np.max(marr))
+    #print(marr)
+    print(np.mean(marr))
+    mse.append(np.mean(marr))
+    #print(np.min(marr))
+    #print(np.max(marr))
 
-label = label.flatten()
-pred = pred.flatten()
+    #print(len(label))
+    #print(len(pred))
+    label = np.array(label.reshape((len(pred),169)))
+    pred = np.array(pred.reshape((len(pred),169)))
+    arre = []
+    arra = []
+    for t, s in zip(pred, label):
+        # print(count)
+        arre.append(travel_data_error(s, t))
+        arra.append(travel_data_accuracy(s, t))
+        t = np.around(t)
+        s = np.around(s)
+        t = t.reshape((label_dim, label_dim))
+        s = s.reshape((label_dim, label_dim))
 
-print(len(label))
-print(len(pred))
-plt.scatter(pred, label, s=1)
+    #print(arre)
+    print(np.mean(np.array(arre)))
+    error.append(np.mean(np.array(arre)))
+    #print(arra)
+    print(np.mean(np.array(arra)))
 
-#plt.title("Extract Number Root ")
 
-    # Set x, y label text.
-plt.ylabel("Label")
-plt.xlabel("Pred")
-x3 = np.linspace(11, 35, 500)
-x2 = np.linspace(6,10,50)
-x1 = np.linspace(0,5,50)
-x = np.linspace(0,35,1000)
-plt.plot(x, x + 0, linestyle='solid', color='g')
-plt.plot(x1, x1 + 2, linestyle='solid', color='r')
-plt.plot(x1, x1 - 2, linestyle='solid', color='r')
-plt.plot(x2, x2 + 3, linestyle='solid', color='r')
-plt.plot(x2, x2 - 3, linestyle='solid', color='r')
-plt.plot(x3, 0.8*x3 , linestyle='solid', color='r')
-plt.plot(x3, 1.2*x3 , linestyle='solid', color='r')
-plt.show()
+    acc.append(np.mean(np.array(arra)))
+
+
+    if np.mean(np.array(arra)) >0.9 and np.mean(np.array(arre)) < 2:
+        good.append((time_inp,denselayers,epoch))
+
+    label = np.around(label.flatten())
+    pred = np.around(pred.flatten())
+
+    plt.scatter(pred, label, s=1)
+
+    #plt.title("Extract Number Root ")
+
+        # Set x, y label text.
+    plt.ylabel("Label")
+    plt.xlabel("Pred")
+    x3 = np.linspace(11, 35, 500)
+    x2 = np.linspace(6,10,50)
+    x1 = np.linspace(0,5,50)
+    x = np.linspace(0,35,1000)
+    plt.plot(x, x + 0, linestyle='solid', color='g')
+    plt.plot(x1, x1 + 2, linestyle='solid', color='r')
+    plt.plot(x1, x1 - 2, linestyle='solid', color='r')
+    plt.plot(x2, x2 + 3, linestyle='solid', color='r')
+    plt.plot(x2, x2 - 3, linestyle='solid', color='r')
+    plt.plot(x3, 0.8*x3 , linestyle='solid', color='r')
+    plt.plot(x3, 1.2*x3 , linestyle='solid', color='r')
+    plt.savefig("../Graph/pred_label/CNN/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochsCNN")
+    plt.close()
+
+time_inps = [1,3,5]
+epochs = [50,100,500,1000]
+denselayerss =[5,7,9,11,13,15,17,20]
+
+count = 0
+for t in time_inps:
+    for e in epochs:
+        for d in denselayerss:
+            if e >= d*5:
+                time_inp = t
+                epoch = e
+                denselayers = d
+                if count < 74:
+                    run()
+                    count+=1
+print("##################################")
+print(np.max(acc))
+print(np.min(error))
+print(np.min(mse))
+print(np.min(ssima))
+
+print(good)

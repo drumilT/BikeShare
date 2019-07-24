@@ -1,26 +1,30 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+#require sklearn, tensorflow and keras
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 from sklearn.model_selection import train_test_split
 #pip install -q tensorflow-gpu==2.0.0-beta1
 import pickle
 import numpy as np
 import tensorflow as tf
- 
 from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
+from error_function import travel_data_error,travel_data_accuracy
 
-from error_function import travel_data_error,travel_data_accuracy,travel_error
+##Main Params
+exp = False ## True if the data stored is an exponentiated form of the original OD graph
+input_dim = 17 ## Expects a input_dim*input_dim array nas input
+label_dim = 13 ## Expects a label_dim*label_dim array nas output
+time_inp = 5 ## defines the hours of prior data you want the CNN to learn on
+epoch = 50 ## defines to number of epochs for the CNN for training
+denselayers = 5 ## Number of dense layers after convolution to be introduced linearly
 
-exp = False
-input_dim = 17
-label_dim = 13
-time_inp = 5
-epoch = 50
-denselayers = 5
-
-file_out = open("../cnn.txt","w")
+file_out = open("../cnn.txt","a") ##file to store your results post run
 
 def get_data():
+
+    # Function to fetch data for the CNN , requires it the required files in the place as defined in open command
+    # defined below
+    # not much to change here if you are using hourly_data_fast to generate data
     if exp:
         src = "EXP"
     else:
@@ -39,12 +43,56 @@ def get_data():
     return (X_train,y_train), (X_test, y_test)
 
 def abserr (y_true, y_pred):
+    #Calculates a absolute relative error in the matrices
+    #not used anywhere but jut defined in case of requirement
     y_pred = np.array(y_pred)
     val = 100* (np.mean(np.abs(y_pred - y_true) / np.abs(np.mean(y_true))))
     return val
 
+def plot_test_pred(pred,test):
+    #Plots the predicted and actual graphs
+    count = 0
+    for t,s in zip(pred, test):
+        if exp :
+            s = np.log(s)
+            t = np.log(t)
+        t = np.around(t)
+        s = np.around(s)
+        t = t.reshape((label_dim,label_dim))
+        s = s.reshape((label_dim,label_dim))
+        plt.imshow(t)
+        plt.colorbar()
+        plt.savefig("../Graph/CNN/" + str(count) + '-Pred-graph.png')
+        plt.imshow(s)
+
+        plt.savefig("../Graph/CNN/" + str(count) + '-Actual-graph.png')
+        plt.close()
+
+def calc_new_err_and_acc(pred , test_labels):
+    #Uses the accuracy and neww error function in the error function file to calculate acc on the predicted labels
+    arre =[]
+    arra =[]
+
+    for t,s in zip(pred, test_labels):
+        if exp :
+            s = np.log(s)
+            t = np.log(t)
+
+        arre.append(travel_data_error(s,t))
+        arra.append(travel_data_accuracy(s,t))
+    print(arre)
+    print(np.mean(np.array(arre)))
+    file_out.write(str(np.mean(np.array(arre))))
+    print(arra)
+    print(np.mean(np.array(arra)))
+    file_out.write(str(np.mean(np.array(arra))))
+    file_out.write("\n")
+
 def run():
+    print(str(time_inp) + "hr_inp" + str(denselayers) + "dense_layers" + str(epoch) + "epochsCNN")
+
     file_out.write(str(epoch) + 'epoch ' + str(denselayers) + "dense" + str(time_inp) + "time_inp")
+
     (train_images, train_labels), (test_images, test_labels) = get_data()
 
     train_images = train_images.reshape((train_images.shape[0], time_inp*input_dim, input_dim, 1))
@@ -79,8 +127,6 @@ def run():
                   loss= "mse",
                   metrics= ['accuracy','mse'])
 
-    #x = model.predict(test_images[0].reshape((1,19,19,1)))
-    #print(x.shape)
     history = model.fit(train_images, train_labels, epochs=epoch)
 
     test_loss, test_acc, b = model.evaluate(test_images, test_labels)
@@ -88,67 +134,67 @@ def run():
     file_out.write(str(test_acc))
     pred = model.predict(test_images)
 
-    count = 0
-
     #pred = np.array(pred).reshape((len(pred), label_dim,label_dim))
 
     with open("../usefulData/pred/"+str(time_inp)+"hr_inp"+str(denselayers)+"dense_layers"+str(epoch)+"epochsCNN" , "wb") as f:
         pickle.dump(pred,f)
 
-    print(history.history.keys())
-    plt.plot(history.history['accuracy'])
-    #plt.plot(history.history['val_acc'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch '+str(denselayers)+"dense"+str(time_inp)+"time_inpCNN")
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+    #print(history.history.keys())
 
+    plot_acc_vs_epoch(history)
+    plot_mse_vs_epoch(history)
+    calc_new_err_and_acc(pred,test_labels)
+    plot_test_pred(pred,test_labels)
+    del model
+
+def plot_mse_vs_epoch(history):
+    #funcion name defines it all
     plt.plot(history.history['mse'])
-    #plt.plot(history.history['val_loss'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch'+str(denselayers)+"dense"+str(time_inp)+"time_inpCNN")
     plt.legend(['train', 'test'], loc='upper left')
     plt.show()
 
-    arre =[]
-    arra =[]
-    for t,s in zip(pred, test_labels):
-        #print(count)
-        if exp :
-            s = np.log(s)
-            t = np.log(t)
+def plot_acc_vs_epoch(history):
+    #function anme defines it
+    plt.plot(history.history['accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch '+str(denselayers)+"dense"+str(time_inp)+"time_inpCNN")
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
 
-        arre.append(travel_data_error(s,t))
-        arra.append(travel_data_accuracy(s,t))
-        t = np.around(t)
-        s = np.around(s)
-        t = t.reshape((label_dim,label_dim))
-        s = s.reshape((label_dim,label_dim))
-        #plt.imshow(t)
-        #plt.colorbar()
-        #plt.savefig("../Graph/CNN/" + str(count) + '-Pred-graph.png')
-        #plt.imshow(s)
+def tuning():
+    time_inps = [1,3,5]
+    epochs = [50,100,500,1000]
+    denselayerss =[5,7,9,11,13,15,17,20]
 
-        #plt.savefig("../Graph/CNN/" + str(count) + '-Actual-graph.png')
-        #plt.close()
-        count += 1
-    print(arre)
-    print(np.mean(np.array(arre)))
-    file_out.write(str(np.mean(np.array(arre))))
-    print(arra)
-    print(np.mean(np.array(arra)))
-    file_out.write(str(np.mean(np.array(arra))))
-    file_out.write("\n")
-time_inps = [1,3,5]
-epochs = [50,100,500,1000]
-denselayerss =[5,7,9,11,13]
-for t in time_inps:
-    for e in epochs:
-        for d in denselayerss:
-            if e >= d*5:
-                time_inp = t
-                epoch = e
-                denselayers = d
-                run()
+    global epoch,time_inp,denselayers
+    for t in time_inps:
+        for e in epochs:
+            for d in denselayerss:
+                if e >= d*5:
+                    time_inp = t
+                    epoch = e
+                    denselayers = d
+                    run()
+
+def refined_tuning():
+    finely_tuned = [(1, 7, 100), (1, 9, 100), (1, 17, 500), (3, 5, 50), (3, 9, 100), (3, 11, 100), (3, 13, 100), (3, 15, 100), (3, 17, 500), (5, 11, 100), (5, 13, 100)]
+
+    global epoch, time_inp, denselayers
+    for time,dense,epo in finely_tuned:
+        jump = int(0.1 * epo)
+        epochs = []
+        for i in range(1,4):
+            t = epo - i*jump
+            s = epo + i*jump
+            epochs.append(t)
+            epochs.append(s)
+        print(epochs)
+        for e in epochs:
+            time_inp = time
+            epoch = e
+            denselayers = dense
+            run()
