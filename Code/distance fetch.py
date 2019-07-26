@@ -2,9 +2,14 @@
 import googlemaps
 from itertools import combinations
 
+
+
+## attempt to fetch distances between all pairs stations for clustering purposes
+##needs paid google api key to run multiple requests
+
 def dis(x,y):
     # Requires API key
-    gmaps = googlemaps.Client(key='AIzaSyDjVyu8HhYi7X2KUti2RnWdJYH3FMS8Qaw')
+    gmaps = googlemaps.Client(key=key)
 
     # Requires cities name
     my_dist = gmaps.distance_matrix(x, y)['rows'][0]['elements'][0]

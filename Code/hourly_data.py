@@ -7,6 +7,11 @@ from datetime import date, datetime
 import holidays
 import pickle
 # starting
+##older but reliable code to get hourly OD graph can be used to cross check if hourly data fast is working correctly
+##slower code
+
+
+
 dd = 1
 m = 1
 hr = 0

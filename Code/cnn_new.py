@@ -10,6 +10,10 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 
 from error_function import travel_data_error, travel_data_accuracy
+
+###Everything is prety similar to cnn.py please refer it
+##Data input here is a 168*167 array such that it 167 points are the station points in the clusters
+
 exp = False
 input_dim_row = 168
 input_dim_col = 167
@@ -19,6 +23,9 @@ epoch = None
 denselayers = 5
 
 file_out = open("../cnn_new.txt","w")
+
+
+
 def get_data():
 
     fout = open("../usefulData/" + str(time_inp) + "_inp_data_out7am_red.bin", "rb")

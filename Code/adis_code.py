@@ -1,3 +1,7 @@
+##CNN in pytorch
+##Please check for required imports
+
+
 #################### Model Class ############################
 
 in_ch = 1

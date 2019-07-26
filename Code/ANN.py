@@ -8,6 +8,9 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 tf.compat.v1.enable_eager_execution()
 from error_function import travel_data_accuracy, travel_data_error
+
+##Similar tocnn.py expect no convolution is involved
+
 input_dim = 173
 label_dim = 13
 time_inp = 1

@@ -4,6 +4,9 @@ import numpy as np
 #from sklearn.cluster import DBSCAN
 from skimage.measure import compare_ssim as ssim
 
+##Attempt to write a custom K-Means to cluster stations using the distance data fetched uses google api
+
+
 class KMeans:
     def __init__(self, k= 3, tol= 0.1, max_iter=500):
         self.k = k

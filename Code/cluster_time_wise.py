@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 from skimage.measure import compare_ssim as ssim
 
+##Clusters hourly OD graphs using Kmeans/DBSCAN
 
 def met(im1,im2):
     return  1 - ssim(im1,im2)

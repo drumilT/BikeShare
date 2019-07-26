@@ -3,6 +3,11 @@ import numpy as np
 from skimage.measure import compare_ssim as ssim
 import matplotlib.pyplot as plt
 
+
+## draws ssim matrix for each hour of all daily data
+##essentially 24 ssim matrices
+
+
 def compare_image(im1,im2):
     return ssim(im1,im2)
 

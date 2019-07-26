@@ -14,9 +14,9 @@ from error_function import travel_data_error,travel_data_accuracy
 exp = False ## True if the data stored is an exponentiated form of the original OD graph
 input_dim = 17 ## Expects a input_dim*input_dim array nas input
 label_dim = 13 ## Expects a label_dim*label_dim array nas output
-time_inp = 5 ## defines the hours of prior data you want the CNN to learn on
-epoch = 50 ## defines to number of epochs for the CNN for training
-denselayers = 5 ## Number of dense layers after convolution to be introduced linearly
+time_inp = 3 ## defines the hours of prior data you want the CNN to learn on
+epoch = 100 ## defines to number of epochs for the CNN for training
+denselayers = 11 ## Number of dense layers after convolution to be introduced linearly
 
 file_out = open("../cnn.txt","a") ##file to store your results post run
 
@@ -33,7 +33,7 @@ def get_data():
     fin = open("../usefulData/"+str(time_inp)+"_inp_data_in7am"+src+"_red_mem.bin" , "rb")
     data_in = pickle.load(fin)
     data_out = pickle.load(fout)
-    X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.1, random_state=100)
+    X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.1, random_state=20)
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     X_test = np.array(X_test)
@@ -198,3 +198,5 @@ def refined_tuning():
             epoch = e
             denselayers = dense
             run()
+
+run()

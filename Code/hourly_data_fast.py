@@ -17,6 +17,9 @@ c_en_st = 3
 num_clusture = 13
 time_inp = 3
 input_len = 167
+
+
+## make_*_dict control the station to number mapping for OD graph. Ones that are not mentioned are ignored in the plot
 def make_st_num_dict():
     bij = {31100: 3, 31101: 8, 31102: 4, 31103: 4, 31104: 10, 31105: 4,
           31106: 10,
@@ -91,13 +94,15 @@ def make_st_num_dict_for_big_matrix():
 new_bij = make_st_num_dict_for_big_matrix()
 bij = make_st_num_dict()
 
+
+#return 0/1 depending on whether the date passed to it was a US holiday or not
 def get_holiday(now):
     if now in us_holidays:
         return 1*scale
     else:
         return 0
 
-
+#returns the scaled version of the season of the date passed to it
 def get_season(now):
     Y = 2000  # dummy leap year to allow input X-02-29 (leap day)
     seasons = [(0.25, 'winter', (dtf(Y, 1, 1), dtf(Y, 3, 20))),
@@ -112,17 +117,17 @@ def get_season(now):
     return next( scale*season_num for season_num, season, (start, end) in seasons
                 if start <= now <= end)
 
-
+#returns the scaled version of the day of the week of the date passed to it with monday being 1/7 and sunday being 1
 def get_day(now):
     return  ((now.weekday()) + 1) / 7
 
-
+#return the date and hour of the hour
 def give_date_time(arr):
      date = int(arr[8:10])
      hour = int(arr[11:13])
      return date, hour
 
-
+#returns the mpnths data from the monthly data csv csv files stored in ../Data/
 def get_months_data(month) :
     ext = "-capitalbikeshare-tripdata.csv"
     df = pd.read_csv("../Data/" + str(201800 + month) + ext)
@@ -138,7 +143,8 @@ def get_months_data(month) :
     #data = np.sort(data, axis = c_date, kind = 'mergesort')
     return data
 
-
+#creates a 24*17*17 sized stacked OD arrays for each day ,
+# 17 * 17 is created by adding 4 rows of hour,day,season and holiday to the 13*13 OD graph
 def date_od_arr_in(s_data, bij, num_clusture, day, season , holiday):
     od_arr = np.zeros((24, (num_clusture + 4) , (num_clusture+4) ))
 
@@ -160,7 +166,9 @@ def date_od_arr_in(s_data, bij, num_clusture, day, season , holiday):
 
     return od_arr
 
-def date_od_arr_in_new(s_data, bij, num_clusture, day, season , holiday):
+#creates a 24*168*167 sized stacked OD arrays for each day ,
+# 168 * 167 is created by adding 1 row divided into 4 parts for hour,day,season and holiday to the 167*167 OD graph
+def date_od_arr_in_new(s_data, new_bij, num_clusture, day, season , holiday):
     od_arr = np.zeros((24, input_len + 1, input_len ))
 
     od_arr[:, input_len,int(input_len/4) : 2*int(input_len/4) ] = day
@@ -181,6 +189,7 @@ def date_od_arr_in_new(s_data, bij, num_clusture, day, season , holiday):
 
     return od_arr
 
+# creates a 24*13*13 sized stack of OD arrays for each day
 def date_od_arr_out(s_data, bij, num_clusture):
     od_arr = np.zeros((24, num_clusture , num_clusture ))
 
@@ -195,7 +204,9 @@ def date_od_arr_out(s_data, bij, num_clusture):
 
     return od_arr
 
-def create_166_input_new():
+#creates the entire input data for the 168*167 arrays stores them in ../usefulData
+##Caution runs slow, also time_inp should be 1  for it to function well
+def create_167_input_new():
 
     fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_166_mem.bin" , "wb")
     year_data_in = []
@@ -229,6 +240,7 @@ def create_166_input_new():
     print(len(year_data_in))
     fin.close()
 
+#creates total input and output according to the control Params and stores them in ../usefulData
 def create_total_input():
     fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red_mem.bin" , "wb")
     fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red_mem.bin" , "wb")
@@ -292,6 +304,7 @@ def create_total_input():
     fout.close()
     fin.close()
 
+#uses the total_input and ouput data to generate the 7 to 8pm data
 def create_7_to_8pm_data():
     fout = open("../usefulData/"+str(time_inp)+"_inp_data_out_red.bin" , "rb")
     fin = open("../usefulData/"+str(time_inp)+"_inp_data_in_red.bin" , "rb")
@@ -326,7 +339,8 @@ def create_7_to_8pm_data():
 
     pickle.dump(data7_out, fout7)
 
-def create_5_to_10am_data():
+#uses the total_input and ouput data to generate the 7 to 9am data
+def create_7_to_9am_data():
     fout = open("../usefulData/" + str(time_inp) + "_inp_data_out_red_mem.bin", "rb")
     fin = open("../usefulData/" + str(time_inp) + "_inp_data_in_red_mem.bin", "rb")
 
@@ -359,7 +373,8 @@ def create_5_to_10am_data():
 
     pickle.dump(data7_out, fout7)
 
-def create_7_to_9am_data():
+#uses the total_input and ouput data to generate the 7 to 9am data for ANN i.e. a linear 173 (13*13 + 4) sized array
+def create_7_to_9am_data_for_ANN():
     fout = open("../usefulData/" + str(time_inp) + "_inp_data_out_red.bin", "rb")
     fin = open("../usefulData/" + str(time_inp) + "_inp_data_in_red.bin", "rb")
 
@@ -401,6 +416,7 @@ def create_7_to_9am_data():
 
     pickle.dump(data7_out, fout7)
 
+#creates a csv of the data dumped as binary from it src
 def create_csv(bin_src):
 
     with open(bin_src,"rb") as f:
@@ -413,6 +429,7 @@ def create_csv(bin_src):
     data = data.reshape((lent , int(len(data) / lent) ))
     pd.DataFrame(np.array(data)).to_csv(path)
 
+#creates the exponential for of the data
 def create_exp():
     fout = open("../usefulData/" + str(time_inp) + "_inp_data_out7am_red.bin", "rb")
     fin = open("../usefulData/" + str(time_inp) + "_inp_data_in7am_red.bin", "rb")
